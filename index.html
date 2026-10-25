@@ -1,0 +1,553 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Session Notes</title>
+<meta name="theme-color" content="#1a3a2a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Session Notes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="description" content="Session Notes from The Outdoor Practice. Write up an outdoor session, export it to wherever you keep notes, then wipe it. Nothing is sent anywhere.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: one calm column, like a case notebook. Header, two tabs, then the note form and an export bar. */
+:root {
+  --bg: #f5f0e8;
+  --surface: #fbf8f2;
+  --ink: #26302a;
+  --muted: #6b7068;
+  --line: #ddd5c7;
+  --forest: #1a3a2a;
+  --moss: #4f6b42;
+  --ember: #c4622a;
+  --moss-soft: rgba(79, 107, 66, 0.10);
+  --ember-soft: rgba(196, 98, 42, 0.10);
+  --focus: #c4622a;
+  --display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121915; --surface: #19221c; --ink: #e6e0d4; --muted: #9ca296; --line: #2d3a31;
+    --forest: #d3e2cb; --moss: #8fae7d; --ember: #e08a5a;
+    --moss-soft: rgba(143, 174, 125, 0.12); --ember-soft: rgba(224, 138, 90, 0.14); --focus: #e08a5a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1, h2, h3 { font-family: var(--display); color: var(--forest); font-weight: 600; text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.4rem; font-weight: 500; }
+h2 { font-size: 1.7rem; font-weight: 500; }
+h3 { font-size: 1.25rem; }
+p { margin: 0; }
+a { color: var(--moss); }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+.brand { display: flex; align-items: center; gap: 10px; color: var(--forest); }
+.brand svg { width: 28px; height: 28px; flex: none; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600; color: var(--forest); }
+.head { display: flex; flex-direction: column; gap: 10px; }
+.tagline { font-family: var(--display); font-style: italic; font-size: 1.15rem; color: var(--ember); }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab { background: none; border: 0; padding: 10px 14px 9px; cursor: pointer; color: var(--muted); font-size: 0.9rem; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--forest); border-bottom-color: var(--ember); }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 9px 18px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+.btn:hover { border-color: var(--moss); }
+.btn.primary { background: var(--forest); color: var(--bg); border-color: var(--forest); }
+.btn.danger { color: var(--ember); border-color: var(--ember); background: transparent; }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding-inline: 6px; }
+.btn.small { padding: 5px 12px; font-size: 0.82rem; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.toast { font-size: 0.84rem; color: var(--muted); }
+.warn { font-size: 0.82rem; color: var(--ember); }
+
+.privacy { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; background: var(--moss-soft); font-size: 0.86rem; }
+.privacy svg { width: 18px; height: 18px; flex: none; margin-top: 2px; color: var(--moss); }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.seg button { border: 0; background: transparent; border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 0.88rem; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--forest); color: var(--bg); }
+
+.sheet { display: flex; flex-direction: column; gap: 26px; }
+.section { display: flex; flex-direction: column; gap: 14px; padding-top: 18px; border-top: 1px solid var(--forest); }
+.section-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.section-head .hint { font-family: var(--display); font-style: italic; color: var(--ember); font-size: 1.05rem; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; color: var(--forest); }
+.label em { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--muted); font-size: 0.8rem; margin-left: 6px; }
+input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea {
+  width: 100%; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 6px 2px; border-radius: 0;
+}
+textarea { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); resize: vertical; line-height: 1.65; min-height: 92px; }
+input:focus, textarea:focus { outline: none; border-color: var(--moss); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.scale { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.scale button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--moss); background: transparent; cursor: pointer; font-size: 0.8rem; color: var(--moss); font-variant-numeric: tabular-nums; }
+.scale button[aria-pressed="true"] { background: var(--moss); color: var(--bg); }
+.scale .ends { font-size: 0.75rem; color: var(--muted); }
+.check { display: flex; gap: 10px; align-items: center; cursor: pointer; font-size: 0.92rem; }
+.check input { width: 18px; height: 18px; accent-color: var(--moss); }
+.people { display: flex; flex-direction: column; gap: 10px; }
+.person { display: grid; grid-template-columns: 7.5em 1fr auto; gap: 10px; align-items: start; }
+.person textarea { min-height: 60px; }
+
+.exportbar { position: sticky; bottom: 0; z-index: 5; background: var(--bg); border-top: 1px solid var(--line); padding: 12px 0 calc(12px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
+.done { border: 1px solid var(--moss); background: var(--moss-soft); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+.guide { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+details { border-bottom: 1px solid var(--line); }
+summary { cursor: pointer; padding: 14px 2px; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary h3 { font-size: 1.35rem; }
+summary .plus { color: var(--ember); font-size: 1.2rem; transition: transform .2s; }
+details[open] summary .plus { transform: rotate(45deg); }
+.g-body { padding: 0 2px 20px; display: flex; flex-direction: column; gap: 10px; max-width: 62ch; }
+.g-lead { font-family: var(--display); font-style: italic; color: var(--ember); font-size: 1.1rem; }
+.g-body ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 7px; }
+.g-body li::marker { color: var(--ember); }
+.g-body strong { color: var(--forest); font-weight: 600; }
+.foot { font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
+
+#print-out { display: none; }
+@media print {
+  @page { size: A4; margin: 18mm 16mm; }
+  body { background: #fff; color: #222; padding: 0; font-size: 10.5pt; }
+  .wrap, .a2hs { display: none !important; }
+  #print-out { display: block; }
+  #print-out .p-brand { font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase; color: #1a3a2a; font-weight: 600; }
+  #print-out h1 { font-family: var(--display); color: #1a3a2a; font-size: 22pt; margin: 4pt 0 2pt; }
+  #print-out .p-meta { color: #555; font-size: 9pt; margin-bottom: 10pt; padding-bottom: 8pt; border-bottom: 1px solid #1a3a2a; }
+  #print-out h2 { font-family: var(--display); color: #1a3a2a; font-size: 13.5pt; margin: 12pt 0 3pt; }
+  #print-out p { margin: 0 0 5pt; white-space: pre-wrap; }
+  #print-out .p-foot { margin-top: 18pt; font-size: 8pt; color: #777; border-top: 1px solid #ccc; padding-top: 6pt; }
+}
+@media (max-width: 520px) {
+  h1 { font-size: 2rem; }
+  .grid3 { grid-template-columns: 1fr 1fr; }
+  .grid3 .wide { grid-column: 1 / -1; }
+  .grid2 { grid-template-columns: 1fr; }
+  .person { grid-template-columns: 1fr auto; }
+  .person textarea { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="brand">
+      <svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="var(--moss)" stroke-width="3.5"/>
+        <g stroke="currentColor" stroke-width="3.5" fill="none">
+          <line x1="50" y1="12" x2="50" y2="88"/>
+          <polyline points="32.5,47.5 50,30 67.5,47.5"/>
+          <polyline points="36,59 50,45 64,59"/>
+        </g>
+      </svg>
+      <span class="eyebrow">The Outdoor Practice</span>
+    </div>
+    <h1>Session Notes</h1>
+    <p class="tagline">Write it up. Send it home. Wipe the slate.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-view="note" aria-selected="true">Note</button>
+    <button class="tab" role="tab" data-view="safe" aria-selected="false">Keeping notes safe</button>
+  </nav>
+
+  <main id="view" aria-live="polite"></main>
+
+  <footer class="foot">Nothing you write here is sent anywhere. Your draft stays on this device until you clear it. Export, store it somewhere secure, then clear.</footer>
+</div>
+
+<div id="print-out" aria-hidden="true"></div>
+
+<template id="safe-tpl">
+  <div class="guide">
+    <details open>
+      <summary><h3>How this tool handles your notes</h3><span class="plus">+</span></summary>
+      <div class="g-body">
+        <p class="g-lead">Write it up. Send it home. Wipe the slate.</p>
+        <ul>
+          <li><strong>Nothing leaves your device</strong> unless you export it. There are no accounts, no servers and no tracking.</li>
+          <li><strong>Your draft is saved on this device</strong> as you type, so you won't lose it if the page closes. It stays until you clear it.</li>
+          <li><strong>Export, then clear.</strong> Copy into your notes system, or save as Markdown, text or PDF. Then tap <strong>Clear this note</strong>.</li>
+          <li><strong>One draft at a time.</strong> This is a writing pad, not a filing cabinet. Your notes live wherever you store them.</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary><h3>Use codes, not names</h3><span class="plus">+</span></summary>
+      <div class="g-body">
+        <ul>
+          <li><strong>Give each client a code,</strong> like initials plus a number: AB01.</li>
+          <li><strong>Keep the key separately,</strong> the list linking codes to real people, somewhere secure and away from your notes.</li>
+          <li><strong>In group notes, use codes too.</strong> Avoid details that would identify someone to a reader who wasn't there.</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary><h3>Storing exported notes</h3><span class="plus">+</span></summary>
+      <div class="g-body">
+        <ul>
+          <li><strong>Somewhere protected.</strong> A device with a passcode and encryption switched on, or a secure practice system.</li>
+          <li><strong>Obsidian users.</strong> Keep client notes in their own vault or folder. If you sync it, choose a service with strong encryption and two-factor login.</li>
+          <li><strong>Don't email notes</strong> as plain attachments.</li>
+          <li><strong>Shared device?</strong> Always clear the draft after exporting, and delete stray copies from your downloads.</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary><h3>Your responsibilities</h3><span class="plus">+</span></summary>
+      <div class="g-body">
+        <p>This tool helps you write notes. Keeping them safely is your responsibility as a practitioner. In the UK:</p>
+        <ul>
+          <li><strong>Health information is special category data</strong> under UK GDPR, so it needs extra care.</li>
+          <li><strong>You may need to pay the ICO data protection fee</strong> if you hold client records. The ICO website has a quick self-assessment.</li>
+          <li><strong>Follow your professional body's guidance</strong> on record keeping and how long to keep notes, such as BACP, UKCP or NCPS.</li>
+          <li><strong>Clients can ask to see their records.</strong> Write notes you'd be comfortable with them reading.</li>
+          <li><strong>Students:</strong> follow your placement's and training provider's rules on notes. They may not allow personal devices.</li>
+        </ul>
+        <p>This is general guidance, not legal advice. If in doubt, check with your professional body or supervisor.</p>
+      </div>
+    </details>
+    <details>
+      <summary><h3>Getting a PDF</h3><span class="plus">+</span></summary>
+      <div class="g-body">
+        <ul>
+          <li><strong>Computer:</strong> tap <strong>PDF</strong>, then choose <strong>Save as PDF</strong> as the printer.</li>
+          <li><strong>iPhone:</strong> tap <strong>PDF</strong>, then the Share button in the print screen, then <strong>Save to Files</strong>.</li>
+          <li><strong>Android:</strong> tap <strong>PDF</strong>, then choose <strong>Save as PDF</strong> at the top.</li>
+        </ul>
+        <p>rewildingtherapies.com</p>
+      </div>
+    </details>
+  </div>
+</template>
+
+<script>
+const KEY = "top-session-notes-draft";
+const state = { view: "note", d: null, exported: false, msg: "" };
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad = (n) => String(n).padStart(2, "0");
+const today = () => { const d = new Date(); return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); };
+const fmtDate = (s) => { if (!s) return ""; const d = new Date(s + "T12:00:00"); return isNaN(d) ? s : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }); };
+
+function blank(format) {
+  return {
+    format: format || "1:1", code: "", date: today(), time: "", minutes: "", site: "", weather: "",
+    count: "", cofac: "",
+    arrive: 0, leave: 0, arriving: "", happened: "", activities: "", nature: "", leaving: "",
+    dynamics: "", people: [{ code: "", note: "" }],
+    risk: "", reflection: "", supervision: false, supnote: "", next: "", saved: Date.now(),
+  };
+}
+function load() { try { const r = JSON.parse(localStorage.getItem(KEY)); state.d = r && r.format ? { ...blank(r.format), ...r } : blank(); } catch (e) { state.d = blank(); } }
+let t; function writeNow() { clearTimeout(t); try { state.d.saved = Date.now(); localStorage.setItem(KEY, JSON.stringify(state.d)); } catch (e) {} }
+function save() { clearTimeout(t); t = setTimeout(writeNow, 400); }
+window.addEventListener("pagehide", writeNow);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") writeNow(); });
+function clearDraft(format) { clearTimeout(t); try { localStorage.removeItem(KEY); } catch (e) {} state.d = blank(format || state.d.format); state.exported = false; state.msg = ""; render(); window.scrollTo({ top: 0 }); }
+const isGroup = () => state.d.format === "Group";
+const looksLikeName = (s) => /^[A-Z][a-z]+(\s+[A-Z][a-z'-]+)+$/.test(String(s).trim());
+
+/* ---------- Sections, shared by form and exports ---------- */
+function sections() {
+  const d = state.d, g = isGroup();
+  const S = [
+    ["Arriving", (d.arrive ? `Settled arriving: ${d.arrive}/5\n` : "") + d.arriving],
+    ["What happened", d.happened],
+    ["Activities and interventions", d.activities],
+    ["Nature as co-facilitator", d.nature],
+  ];
+  if (g) {
+    S.push(["Group process and dynamics", d.dynamics]);
+    const ppl = d.people.filter(p => p.code || p.note).map(p => `${p.code || "(no code)"}: ${p.note}`).join("\n");
+    S.push(["Individual notes", ppl]);
+  }
+  S.push(["Leaving", (d.leave ? `Settled leaving: ${d.leave}/5\n` : "") + d.leaving]);
+  S.push(["Risk and safeguarding", d.risk]);
+  S.push(["Practitioner reflection", d.reflection]);
+  S.push(["For supervision", d.supervision ? ("Yes" + (d.supnote ? `\n${d.supnote}` : "")) : (d.supnote || "")]);
+  S.push(["Next time", d.next]);
+  return S.map(([h, v]) => [h, String(v).trim()]).filter(([, v]) => v);
+}
+function title() { const d = state.d; return `Session note: ${d.code || (isGroup() ? "Group" : "Client")}, ${fmtDate(d.date)}`; }
+function metaLine() {
+  const d = state.d;
+  return [d.format === "Group" ? "Group session" + (d.count ? ` (${d.count} participants)` : "") : "1:1 session",
+    d.time, d.minutes ? d.minutes + " min" : "", d.site, d.weather, d.cofac ? "Co-facilitator: " + d.cofac : ""].filter(Boolean).join(" · ");
+}
+function asText() { return [title(), metaLine(), "", ...sections().map(([h, v]) => `${h.toUpperCase()}\n${v}\n`)].join("\n").trim() + "\n"; }
+function yamlStr(v) { return JSON.stringify(String(v)); }
+function asMarkdown() {
+  const d = state.d;
+  const fm = ["---", "type: session-note", `format: ${yamlStr(d.format)}`, `client: ${yamlStr(d.code || "")}`, `date: ${d.date || ""}`];
+  if (d.time) fm.push(`time: ${yamlStr(d.time)}`);
+  if (d.minutes) fm.push(`duration_min: ${+d.minutes || yamlStr(d.minutes)}`);
+  if (d.site) fm.push(`site: ${yamlStr(d.site)}`);
+  if (d.weather) fm.push(`weather: ${yamlStr(d.weather)}`);
+  if (isGroup() && d.count) fm.push(`participants: ${+d.count || yamlStr(d.count)}`);
+  if (d.arrive) fm.push(`settled_arriving: ${d.arrive}`);
+  if (d.leave) fm.push(`settled_leaving: ${d.leave}`);
+  fm.push(`supervision: ${d.supervision ? "true" : "false"}`);
+  fm.push(`tags: [session-note, outdoor${isGroup() ? ", group" : ""}]`, "---", "");
+  const body = [`# ${title()}`, "", `*${metaLine()}*`, "", ...sections().map(([h, v]) => `## ${h}\n\n${v}\n`)];
+  return fm.join("\n") + body.join("\n").trim() + "\n";
+}
+function fileBase() { const d = state.d; return `${d.date || today()} ${(d.code || (isGroup() ? "Group" : "Client")).replace(/[\\/:*?"<>|]/g, "-")} session note`; }
+
+/* ---------- Render ---------- */
+function render() {
+  const v = $("#view");
+  if (state.view === "safe") { v.innerHTML = ""; v.appendChild($("#safe-tpl").content.cloneNode(true)); return; }
+  v.innerHTML = noteHTML(); bind();
+}
+function scale(key, label) {
+  const d = state.d;
+  return `<div class="field"><span class="label">${label}</span><div class="scale" data-scale="${key}"><span class="ends">Unsettled</span>${[1, 2, 3, 4, 5].map(i => `<button type="button" data-v="${i}" aria-pressed="${d[key] === i}" aria-label="${label} ${i} of 5">${i}</button>`).join("")}<span class="ends">Settled</span></div></div>`;
+}
+const ta = (k, label, hint, ph) => `<div class="field"><label class="label" for="${k}">${label}${hint ? ` <em>${hint}</em>` : ""}</label><textarea id="${k}" data-k="${k}" ${ph ? `placeholder="${esc(ph)}"` : ""}>${esc(state.d[k])}</textarea></div>`;
+const inp = (k, label, type = "text", ph = "", cls = "") => `<div class="field ${cls}"><label class="label" for="${k}">${label}</label><input type="${type}" id="${k}" data-k="${k}" value="${esc(state.d[k])}" ${ph ? `placeholder="${esc(ph)}"` : ""} ${type === "number" ? 'inputmode="numeric" min="0"' : ""}></div>`;
+
+function noteHTML() {
+  const d = state.d, g = isGroup();
+  const saved = d.saved ? new Date(d.saved).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+  return `<div class="sheet">
+    <div class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+      <span>Nothing here is sent anywhere. Use a client code, not a name. Export when you're done, then clear.</span></div>
+
+    <div class="row spread">
+      <div class="seg" role="group" aria-label="Session type">
+        <button type="button" data-format="1:1" aria-pressed="${!g}">1:1</button>
+        <button type="button" data-format="Group" aria-pressed="${g}">Group</button>
+      </div>
+      <span class="toast" id="saved">${saved ? "Draft saved on this device " + saved : ""}</span>
+    </div>
+
+    <section class="section">
+      <div class="section-head"><h3>Session</h3></div>
+      <div class="grid3">
+        <div class="field wide"><label class="label" for="code">${g ? "Group code" : "Client code"}</label><input type="text" id="code" data-k="code" value="${esc(d.code)}" placeholder="${g ? "e.g. MM-AUT26" : "e.g. AB01"}" autocomplete="off"><span class="warn" id="namewarn" ${looksLikeName(d.code) ? "" : "hidden"}>That looks like a name. Use a code or initials instead.</span></div>
+        ${inp("date", "Date", "date")}
+        ${inp("time", "Time", "time")}
+      </div>
+      <div class="grid3">
+        ${inp("minutes", "Minutes", "number", "90")}
+        ${inp("site", "Site", "text", "e.g. woodland, park, river", "wide")}
+      </div>
+      <div class="grid2">
+        ${inp("weather", "Weather", "text", "e.g. cold, drizzle, still")}
+        ${g ? inp("count", "Participants", "number", "8") : ""}
+        ${g ? inp("cofac", "Co-facilitator", "text", "Initials") : ""}
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Arriving</h3><span class="hint">${g ? "how the group arrived" : "how they presented"}</span></div>
+      ${scale("arrive", "Settled arriving")}
+      ${ta("arriving", "Presentation", g ? "mood, energy, who was there" : "mood, energy, what they brought")}
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>The session</h3></div>
+      ${ta("happened", "What happened", "themes and process")}
+      ${ta("activities", "Activities and interventions", "")}
+      ${ta("nature", "Nature as co-facilitator", "what the land offered, moments, metaphors")}
+      ${g ? ta("dynamics", "Group process and dynamics", "connections, tensions, roles") : ""}
+      ${g ? `<div class="field"><span class="label">Individual notes <em>codes only</em></span>
+        <div class="people">${d.people.map((p, i) => `<div class="person">
+          <input type="text" data-pi="${i}" data-pk="code" value="${esc(p.code)}" placeholder="Code" aria-label="Participant code ${i + 1}">
+          <textarea data-pi="${i}" data-pk="note" aria-label="Note for participant ${i + 1}">${esc(p.note)}</textarea>
+          <button type="button" class="btn ghost small" data-remove="${i}" aria-label="Remove participant ${i + 1}">Remove</button></div>`).join("")}</div>
+        <button type="button" class="btn small" id="add-person" style="align-self:flex-start">+ Add participant</button></div>` : ""}
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Leaving</h3></div>
+      ${scale("leave", "Settled leaving")}
+      ${ta("leaving", g ? "How the group left" : "How they left", "")}
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Risk and safeguarding</h3></div>
+      ${ta("risk", "Concerns, actions taken, incidents", "including environmental incidents", "None noted")}
+    </section>
+
+    <section class="section">
+      <div class="section-head"><h3>Reflection</h3><span class="hint">for you, not the client file</span></div>
+      ${ta("reflection", "Practitioner reflection", "your own process, what stirred in you")}
+      <label class="check"><input type="checkbox" id="supervision" ${d.supervision ? "checked" : ""}> Bring this to supervision</label>
+      ${ta("supnote", "For supervision", "what you want to explore")}
+      ${ta("next", "Next time", "plans and follow-ups")}
+    </section>
+
+    <div class="exportbar">
+      ${state.exported ? `<div class="done"><span><b>${esc(state.msg)}</b> Once it's stored safely, clear this note from the device.</span>
+        <div class="row"><button class="btn primary" id="clear-now">Clear this note</button><button class="btn ghost" id="keep">Keep editing</button></div></div>`
+      : (state.msg ? `<span class="toast">${esc(state.msg)}</span>` : "")}
+      <div class="row">
+        <button class="btn primary" data-export="copy">Copy</button>
+        <button class="btn" data-export="md">Markdown</button>
+        <button class="btn" data-export="txt">Text</button>
+        <button class="btn" data-export="pdf">PDF</button>
+        <span style="flex:1"></span>
+        ${state.confirmClear ? `<span class="warn">Clear without exporting?</span><button class="btn danger small" id="clear-yes">Clear</button><button class="btn ghost small" id="clear-no">Cancel</button>` : `<button class="btn ghost small" id="clear">Clear</button>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function bind() {
+  const v = $("#view"), d = state.d;
+  v.querySelectorAll("[data-k]").forEach(el => el.addEventListener("input", () => {
+    d[el.dataset.k] = el.value; save();
+    if (el.id === "code") $("#namewarn").hidden = !looksLikeName(el.value);
+  }));
+  v.querySelectorAll("[data-pi]").forEach(el => el.addEventListener("input", () => { d.people[+el.dataset.pi][el.dataset.pk] = el.value; save(); }));
+  v.querySelectorAll("[data-scale]").forEach(gr => gr.addEventListener("click", e => {
+    const b = e.target.closest("button[data-v]"); if (!b) return;
+    const k = gr.dataset.scale, val = +b.dataset.v; d[k] = d[k] === val ? 0 : val;
+    gr.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(+x.dataset.v === d[k]))); save();
+  }));
+  $("#supervision").addEventListener("change", e => { d.supervision = e.target.checked; save(); });
+}
+
+/* ---------- Export ---------- */
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a"); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+async function doExport(kind) {
+  if (!sections().length && !state.d.code) { state.msg = "Nothing to export yet."; state.exported = false; render(); return; }
+  try {
+    if (kind === "copy") { await navigator.clipboard.writeText(asText()); state.msg = "Copied. Paste it into your notes system."; }
+    if (kind === "md") { download(fileBase() + ".md", asMarkdown(), "text/markdown"); state.msg = "Markdown file saved. Move it into your Obsidian vault."; }
+    if (kind === "txt") { download(fileBase() + ".txt", asText(), "text/plain"); state.msg = "Text file saved. Check your downloads."; }
+    if (kind === "pdf") {
+      const d = state.d;
+      $("#print-out").innerHTML = `<div class="p-brand">The Outdoor Practice · Session note</div><h1>${esc(title())}</h1><div class="p-meta">${esc(metaLine())}</div>` +
+        sections().map(([h, v]) => `<h2>${esc(h)}</h2><p>${esc(v)}</p>`).join("") + `<div class="p-foot">Confidential. Exported ${esc(new Date().toLocaleString("en-GB"))}.</div>`;
+      const old = document.title; document.title = fileBase(); window.print(); document.title = old;
+      state.msg = "PDF ready. Choose Save as PDF if you haven't already.";
+    }
+    state.exported = true;
+  } catch (e) {
+    state.exported = false;
+    state.msg = kind === "copy" ? "Couldn't copy here. Try Markdown or Text instead." : "Export didn't work in this browser. Try another option.";
+  }
+  render();
+  const bar = document.querySelector(".exportbar"); if (bar) bar.scrollIntoView({ block: "end" });
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const tab = e.target.closest(".tab"); if (tab) { state.view = tab.dataset.view; document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t === tab))); render(); window.scrollTo({ top: 0 }); return; }
+  const f = e.target.closest("[data-format]"); if (f) { state.d.format = f.dataset.format; save(); render(); return; }
+  const ex = e.target.closest("[data-export]"); if (ex) { doExport(ex.dataset.export); return; }
+  if (e.target.closest("#add-person")) { state.d.people.push({ code: "", note: "" }); save(); render(); const all = document.querySelectorAll("[data-pk='code']"); if (all.length) all[all.length - 1].focus(); return; }
+  const rm = e.target.closest("[data-remove]"); if (rm) { state.d.people.splice(+rm.dataset.remove, 1); if (!state.d.people.length) state.d.people.push({ code: "", note: "" }); save(); render(); return; }
+  if (e.target.closest("#clear-now") || e.target.closest("#clear-yes")) { state.confirmClear = false; clearDraft(); return; }
+  if (e.target.closest("#clear")) { if (state.exported) { clearDraft(); return; } state.confirmClear = true; render(); return; }
+  if (e.target.closest("#clear-no")) { state.confirmClear = false; render(); return; }
+  if (e.target.closest("#keep")) { state.exported = false; state.msg = ""; render(); return; }
+});
+load(); render();
+</script>
+<!-- Add to home screen prompt -->
+<style>
+.a2hs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--surface); border-top: 1px solid var(--line); box-shadow: 0 -6px 20px rgba(0,0,0,0.10);
+  padding: 14px max(16px, env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.a2hs-in { max-width: 680px; margin: 0 auto; display: flex; gap: 12px; align-items: flex-start; }
+.a2hs-icon { width: 44px; height: 44px; border-radius: 10px; flex: none; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+.a2hs-text { flex: 1; min-width: 0; font-size: 0.88rem; line-height: 1.5; color: var(--ink); }
+.a2hs-text b { display: block; font-family: var(--display); font-size: 1.2rem; font-weight: 600; color: var(--forest); line-height: 1.2; margin-bottom: 2px; }
+.a2hs-text small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+.a2hs-share { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; color: var(--forest); }
+.a2hs-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.a2hs-btn { border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 0.86rem; font-weight: 500; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--ink); }
+.a2hs-btn.go { background: var(--forest); color: var(--bg); border-color: var(--forest); }
+</style>
+<script>
+(function () {
+  var NAME = "Session Notes";
+  var KEY = "top-a2hs-later-" + NAME;
+  var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+  if (standalone) return;
+  try { if (Date.now() < +(localStorage.getItem(KEY) || 0)) return; } catch (e) {}
+  var ua = navigator.userAgent || "";
+  var inApp = /Instagram|FBAN|FBAV|FB_IAB|LinkedInApp|TikTok|Snapchat/i.test(ua);
+  var ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var icon = (document.querySelector('link[rel="apple-touch-icon"]') || {}).href || "";
+  var shareSvg = '<svg class="a2hs-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 11v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8"/></svg>';
+  var deferred = null, el = null, spacer = null;
+
+  function later() {
+    try { localStorage.setItem(KEY, String(Date.now() + 14 * 24 * 3600 * 1000)); } catch (e) {}
+    hide();
+  }
+  function hide() { if (el) el.remove(); if (spacer) spacer.remove(); el = spacer = null; }
+  function show(html, actions) {
+    hide();
+    el = document.createElement("aside");
+    el.className = "a2hs"; el.setAttribute("aria-label", "Add to home screen");
+    el.innerHTML = '<div class="a2hs-in">' + (icon ? '<img class="a2hs-icon" src="' + icon + '" alt="">' : "") +
+      '<div class="a2hs-text">' + html + '<div class="a2hs-actions">' + actions + '<button class="a2hs-btn" data-a2hs="later">Not now</button></div></div></div>';
+    document.body.appendChild(el);
+    spacer = document.createElement("div");
+    spacer.style.height = (el.offsetHeight + 16) + "px";
+    document.body.appendChild(spacer);
+    el.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-a2hs]"); if (!b) return;
+      if (b.dataset.a2hs === "later") later();
+      if (b.dataset.a2hs === "install" && deferred) {
+        deferred.prompt();
+        deferred.userChoice.then(function (c) { if (c && c.outcome === "accepted") hide(); deferred = null; });
+      }
+    });
+  }
+
+  if (inApp) {
+    show("<b>Open in your browser to save " + NAME + "</b>This app can't be saved from inside Instagram or Facebook. Tap the menu (⋯ or ⋮) and choose <strong>Open in browser</strong>, or <strong>Open in Safari</strong>.", "");
+  } else if (ios) {
+    show("<b>Add " + NAME + " to your home screen</b>Tap " + shareSvg + " <strong>Share</strong>, then <strong>Add to Home Screen</strong>. It opens like an app." +
+      "<small>Do this before you start, then always open it from the icon. Your entries stay with the icon.</small>", "");
+  } else if (android) {
+    show("<b>Add " + NAME + " to your home screen</b>Tap the <strong>⋮</strong> menu, then <strong>Install app</strong> or <strong>Add to Home screen</strong>. It opens like an app.", "");
+  }
+
+  window.addEventListener("beforeinstallprompt", function (e) {
+    e.preventDefault(); deferred = e;
+    try { if (Date.now() < +(localStorage.getItem(KEY) || 0)) return; } catch (err) {}
+    show("<b>Install " + NAME + "</b>Add it to your home screen and it opens like an app.", '<button class="a2hs-btn go" data-a2hs="install">Install app</button>');
+  });
+  window.addEventListener("appinstalled", hide);
+})();
+</script>
+</body>
+</html>
